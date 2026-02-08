@@ -1,11 +1,18 @@
 package com.example.converteraudio.repository;
 
 import com.example.converteraudio.model.User;
-import org.springframework.data.jpa.repository.JpaRepository;
 
-import java.util.Optional;
+import java.util.List;
 
-public interface UserRepository extends JpaRepository<User, Long> {
-    Optional<User> findByEmail(String email);
-    Optional<User> findByResetToken(String resetToken);
+public interface UserRepository {
+
+    User save(User user);
+
+    User findById(String id);
+
+    User findByEmail(String email);
+
+    List<User> findAll();
+
+    void deleteById(String id);
 }

@@ -1,32 +1,15 @@
 package com.example.converteraudio.model;
 
-import jakarta.persistence.*;
-import lombok.*;
+import lombok.Data;
 
-import java.time.LocalDateTime;
+import com.google.cloud.Timestamp;
 
-@Entity
-@Table(name = "users")
-@Getter
-@Setter
-@NoArgsConstructor
-@AllArgsConstructor
-@Builder
+@Data
 public class User {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
 
-    @Column(unique = true, nullable = false)
+    private String id;
     private String email;
-
-    @Column(nullable = false)
-    private String password;
-
-    private String fullName;
-
-    private boolean enabled = true;
-
-    private String resetToken;
-    private LocalDateTime resetTokenExpiry;
+    private String password; // hashed
+    private String role;
+    private Timestamp createdAt;
 }

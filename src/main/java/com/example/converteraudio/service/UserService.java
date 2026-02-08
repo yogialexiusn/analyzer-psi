@@ -1,73 +1,75 @@
 package com.example.converteraudio.service;
 
+
+import com.example.converteraudio.exception.ResourceNotFoundException;
 import com.example.converteraudio.model.User;
 import com.example.converteraudio.repository.UserRepository;
-import org.springframework.mail.SimpleMailMessage;
-import org.springframework.mail.javamail.JavaMailSender;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import com.google.cloud.Timestamp;
+import lombok.RequiredArgsConstructor;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDateTime;
-import java.util.Optional;
 import java.util.UUID;
 
 @Service
+@RequiredArgsConstructor
 public class UserService {
 
     private final UserRepository userRepository;
-    private final BCryptPasswordEncoder passwordEncoder;
-    private final JavaMailSender mailSender;
+    private final PasswordEncoder passwordEncoder;
+    private final JwtService jwtService;
 
-    public UserService(UserRepository userRepository, BCryptPasswordEncoder passwordEncoder, JavaMailSender mailSender) {
-        this.userRepository = userRepository;
-        this.passwordEncoder = passwordEncoder;
-        this.mailSender = mailSender;
-    }
+    public User register(User request) {
 
-    public User register(String email, String password, String fullName) {
-        User user = User.builder()
-                .email(email)
-                .password(passwordEncoder.encode(password))
-                .fullName(fullName)
-                .enabled(true)
-                .build();
+        if (request.getEmail() == null || request.getEmail().isBlank()) {
+            throw new IllegalArgumentException("Email is required");
+        }
+
+        if (request.getPassword() == null || request.getPassword().isBlank()) {
+            throw new IllegalArgumentException("Password is required");
+        }
+
+        if (userRepository.findByEmail(request.getEmail()) != null) {
+            throw new IllegalArgumentException("Email already registered");
+        }
+
+        User user = new User();
+        user.setId(UUID.randomUUID().toString());
+        user.setEmail(request.getEmail());
+        user.setPassword(passwordEncoder.encode(request.getPassword()));
+        user.setRole("USER");
+        user.setCreatedAt(Timestamp.now());
+
         return userRepository.save(user);
     }
 
-    public Optional<User> findByEmail(String email) {
-        return userRepository.findByEmail(email);
+    public String login(String email, String rawPassword) {
+
+        User user = userRepository.findByEmail(email);
+
+        if (user == null) {
+            throw new IllegalArgumentException("Invalid credentials");
+        }
+
+        if (!passwordEncoder.matches(rawPassword, user.getPassword())) {
+            throw new IllegalArgumentException("Invalid credentials");
+        }
+
+        return jwtService.generateToken(user);
     }
 
-    public void createPasswordResetToken(String email) {
-        userRepository.findByEmail(email).ifPresent(user -> {
-            String token = UUID.randomUUID().toString();
-            user.setResetToken(token);
-            user.setResetTokenExpiry(LocalDateTime.now().plusHours(1));
-            userRepository.save(user);
+    public User getById(String id) {
 
-            // send email (simple)
-            SimpleMailMessage msg = new SimpleMailMessage();
-            msg.setTo(user.getEmail());
-            msg.setSubject("Password reset");
-            msg.setText("Reset token: " + token + " (valid 1 hour)");
-            try {
-                mailSender.send(msg);
-            } catch (Exception e) {
-                // fallback: print to console
-                System.out.println("Password reset token for " + user.getEmail() + ": " + token);
-            }
-        });
+        User user = userRepository.findById(id);
+
+        if (user == null) {
+            throw new ResourceNotFoundException("User not found with id: " + id);
+        }
+
+        return user;
     }
 
-    public boolean resetPassword(String token, String newPassword) {
-        Optional<User> opt = userRepository.findByResetToken(token);
-        if (opt.isEmpty()) return false;
-        User user = opt.get();
-        if (user.getResetTokenExpiry() == null || user.getResetTokenExpiry().isBefore(LocalDateTime.now())) return false;
-        user.setPassword(passwordEncoder.encode(newPassword));
-        user.setResetToken(null);
-        user.setResetTokenExpiry(null);
-        userRepository.save(user);
-        return true;
+    public User getCurrentUser(String userIdFromToken) {
+        return getById(userIdFromToken);
     }
 }

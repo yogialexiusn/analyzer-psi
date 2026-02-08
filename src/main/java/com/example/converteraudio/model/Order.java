@@ -1,28 +1,17 @@
 package com.example.converteraudio.model;
 
-import jakarta.persistence.*;
-import lombok.*;
+import com.google.cloud.Timestamp;
+import lombok.Data;
 
-import java.time.LocalDateTime;
+import java.util.List;
 
-@Entity
-@Table(name = "orders")
-@Getter
-@Setter
-@NoArgsConstructor
-@AllArgsConstructor
-@Builder
+@Data
 public class Order {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
 
-    private String description;
-
-    private double amount;
-
-    private LocalDateTime createdAt;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    private User user;
+    private String id;
+    private String userId;
+    private String status;
+    private Double totalAmount;
+    private List<String> items;
+    private Timestamp createdAt;
 }

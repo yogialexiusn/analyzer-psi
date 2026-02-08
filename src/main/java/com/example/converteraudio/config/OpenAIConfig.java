@@ -14,7 +14,6 @@ public class OpenAIConfig {
     public OpenAIClient openAIClient(OpenAIProperties properties) {
         String apiKey = properties.getApiKey();
         if (apiKey == null || apiKey.isBlank()) {
-            // If no API key provided via properties, try environment-based client
             return OpenAIOkHttpClient.fromEnv();
         }
 
