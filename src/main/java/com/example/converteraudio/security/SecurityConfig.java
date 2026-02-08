@@ -44,7 +44,7 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf.disable())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(authorize -> authorize
-                        .requestMatchers("/api/auth/**", "/h2-console/**", "/api/test", "/api/openai","/api/openai/original").permitAll()
+                        .requestMatchers("/api/auth/**", "/h2-console/**", "/api/test", "/api/openai","/api/openai/original","/api/openai/upload-pdf","/api/upload-pdf").permitAll()
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
