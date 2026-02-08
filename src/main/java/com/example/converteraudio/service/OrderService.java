@@ -1,6 +1,7 @@
 package com.example.converteraudio.service;
 
 
+import com.example.converteraudio.dto.OrderRequest;
 import com.example.converteraudio.exception.ResourceNotFoundException;
 import com.example.converteraudio.model.Order;
 import com.example.converteraudio.repository.OrderRepository;
@@ -17,13 +18,18 @@ public class OrderService {
 
     private final OrderRepository orderRepository;
 
-    public Order create(Order order) throws Exception {
-        if (order.getUserId() == null || order.getUserId().isBlank()) {
+    public Order create(OrderRequest orderRequest) throws Exception {
+        Order order = new Order();
+        if (orderRequest.getUserId() == null || orderRequest.getUserId().isBlank()) {
             throw new IllegalArgumentException("UserId is required");
         }
         order.setId(UUID.randomUUID().toString());
         order.setCreatedAt(Timestamp.now());
-        order.setStatus("CREATED");
+        order.setStatus(orderRequest.getStatus() != null ? orderRequest.getStatus() : "PENDING");
+        order.setUserId(orderRequest.getUserId());
+        order.setItems(orderRequest.getItems());
+        order.setTotalAmount(orderRequest.getTotalAmount());
+
         return orderRepository.save(order);
     }
 

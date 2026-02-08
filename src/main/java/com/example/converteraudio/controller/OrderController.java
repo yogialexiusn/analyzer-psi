@@ -1,5 +1,6 @@
 package com.example.converteraudio.controller;
 
+import com.example.converteraudio.dto.OrderRequest;
 import com.example.converteraudio.model.Order;
 import com.example.converteraudio.service.OrderService;
 import lombok.RequiredArgsConstructor;
@@ -17,7 +18,7 @@ public class OrderController {
     private final OrderService orderService;
 
     @PostMapping
-    public ResponseEntity<Order> create(@RequestBody Order order) throws Exception {
+    public ResponseEntity<Order> create(@RequestBody OrderRequest order) throws Exception {
         Order created = orderService.create(order);
         return new ResponseEntity<>(created, HttpStatus.CREATED);
     }
